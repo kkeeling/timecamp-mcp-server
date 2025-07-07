@@ -442,7 +442,7 @@ async def start_timer(task_id: int, note: Optional[str] = "") -> TimerResponse:
     try:
         request = StartTimerRequest(task_id=task_id, note=note or "")
     except ValidationError as e:
-        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e)) from e
+        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e))
     
     api_token = get_api_token()
     client = TimeCampClient(api_token)
@@ -562,7 +562,7 @@ async def create_time_entry(
         )
     except ValidationError as e:
         # Convert Pydantic validation error to ToolError
-        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e)) from e
+        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e))
     
     api_token = get_api_token()
     client = TimeCampClient(api_token)
@@ -573,7 +573,7 @@ async def create_time_entry(
         start_dt = datetime.strptime(f"{request.date} {request.start_time}", "%Y-%m-%d %H:%M")
         end_dt = datetime.strptime(f"{request.date} {request.end_time}", "%Y-%m-%d %H:%M")
     except ValueError as e:
-        raise ToolError(f"Invalid date/time format: {str(e)}") from e
+        raise ToolError(f"Invalid date/time format: {str(e)}")
     
     duration = int((end_dt - start_dt).total_seconds())
     
@@ -736,9 +736,6 @@ async def weekly_report_prompt(start_date: Optional[str] = None) -> str:
         start_date = start.strftime("%Y-%m-%d")
     
     try:
-        api_token = get_api_token()
-        client = TimeCampClient(api_token)
-        
         # Calculate week dates
         start = datetime.strptime(start_date, "%Y-%m-%d")
         dates = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
