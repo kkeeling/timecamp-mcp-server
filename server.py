@@ -107,19 +107,19 @@ class TimeCampClient:
                 
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 401:
-                    raise ToolError("Invalid API token. Check TimeCamp settings")
+                    raise ToolError("Invalid API token. Check TimeCamp settings") from e
                 elif e.response.status_code == 404:
-                    raise ToolError("Resource not found")
+                    raise ToolError("Resource not found") from e
                 elif e.response.status_code == 429:
-                    raise ToolError("Rate limit exceeded. Wait 60 seconds")
+                    raise ToolError("Rate limit exceeded. Wait 60 seconds") from e
                 elif 500 <= e.response.status_code < 600:
-                    raise ToolError("TimeCamp unavailable. Try again later")
+                    raise ToolError("TimeCamp unavailable. Try again later") from e
                 else:
-                    raise ToolError(f"API error: {e.response.status_code}")
+                    raise ToolError(f"API error: {e.response.status_code}") from e
             except httpx.RequestError as e:
-                raise ToolError(f"Network error: {str(e)}")
+                raise ToolError(f"Network error: {str(e)}") from e
             except Exception as e:
-                raise ToolError(f"Unexpected error: {str(e)}")
+                raise ToolError(f"Unexpected error: {str(e)}") from e
 
 def get_api_token() -> str:
     """Get API token from environment variable"""
