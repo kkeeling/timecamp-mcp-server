@@ -10,10 +10,9 @@ import logging
 import hashlib
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any, Tuple
-import asyncio
 
 from fastmcp import FastMCP
-from fastmcp.exceptions import McpError, ToolError
+from fastmcp.exceptions import ToolError
 import httpx
 from rapidfuzz import fuzz, process
 from pydantic import ValidationError
@@ -736,6 +735,9 @@ async def weekly_report_prompt(start_date: Optional[str] = None) -> str:
         start_date = start.strftime("%Y-%m-%d")
     
     try:
+        api_token = get_api_token()
+        client = TimeCampClient(api_token)
+        
         # Calculate week dates
         start = datetime.strptime(start_date, "%Y-%m-%d")
         dates = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
