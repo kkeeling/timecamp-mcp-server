@@ -10,9 +10,10 @@ import logging
 import hashlib
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any, Tuple
+import asyncio
 
 from fastmcp import FastMCP
-from fastmcp.exceptions import ToolError
+from fastmcp.exceptions import McpError, ToolError
 import httpx
 from rapidfuzz import fuzz, process
 from pydantic import ValidationError
@@ -441,7 +442,7 @@ async def start_timer(task_id: int, note: Optional[str] = "") -> TimerResponse:
     try:
         request = StartTimerRequest(task_id=task_id, note=note or "")
     except ValidationError as e:
-        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e))
+        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e)) from e
     
     api_token = get_api_token()
     client = TimeCampClient(api_token)
@@ -561,7 +562,7 @@ async def create_time_entry(
         )
     except ValidationError as e:
         # Convert Pydantic validation error to ToolError
-        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e))
+        raise ToolError(str(e.errors()[0]['msg']) if e.errors() else str(e)) from e
     
     api_token = get_api_token()
     client = TimeCampClient(api_token)
@@ -572,7 +573,7 @@ async def create_time_entry(
         start_dt = datetime.strptime(f"{request.date} {request.start_time}", "%Y-%m-%d %H:%M")
         end_dt = datetime.strptime(f"{request.date} {request.end_time}", "%Y-%m-%d %H:%M")
     except ValueError as e:
-        raise ToolError(f"Invalid date/time format: {str(e)}")
+        raise ToolError(f"Invalid date/time format: {str(e)}") from e
     
     duration = int((end_dt - start_dt).total_seconds())
     
