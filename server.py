@@ -289,8 +289,8 @@ async def get_time_entries_resource(date: str) -> DailySummaryResponse:
     # Validate date format
     try:
         datetime.strptime(date, "%Y-%m-%d")
-    except ValueError:
-        raise ToolError("Invalid date format. Use YYYY-MM-DD")
+    except ValueError as e:
+        raise ToolError("Invalid date format. Use YYYY-MM-DD") from e
     
     # Get entries for the date
     entries = await client.request('GET', f'time_entries?from={date}&to={date}')
