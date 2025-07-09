@@ -7,8 +7,8 @@ import pytest
 from datetime import datetime
 from pydantic import ValidationError
 
-from models import (
-    StartTimerRequest, CreateTimeEntryRequest, SearchRequest, ListProjectsRequest,
+from src.timecamp_mcp_server.models import (
+    StartTimerRequest, CreateTimeEntryRequest, SearchRequest,
     TimerResponse, StopTimerResponse, TimerStatusResponse, SearchResponse,
     TimeEntryResponse, DailySummaryResponse, ProjectListResponse,
     SearchResultItem, DailySummaryEntry, ProjectInfo
@@ -176,6 +176,7 @@ class TestResponseValidation:
             task_id=123,
             project_name="Web App",
             duration="2h 30m",
+            duration_seconds=9000,
             notes=["Fixed bug", "Updated API"]
         )
         assert entry.task_id == 123
@@ -186,7 +187,8 @@ class TestResponseValidation:
             task_name="Testing",
             task_id=456,
             project_name="Mobile App",
-            duration="1h 0m"
+            duration="1h 0m",
+            duration_seconds=3600
         )
         assert entry.notes == []
     

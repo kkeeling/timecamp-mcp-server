@@ -21,33 +21,46 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 
 ### Installation
 
+#### Option 1: Direct Installation from GitHub (Recommended)
+
+Install directly from GitHub using `pipx` (recommended for isolated environment):
+```bash
+pipx install git+https://github.com/yourusername/timecamp-mcp-server.git
+```
+
+Or using `uv`:
+```bash
+uv tool install git+https://github.com/yourusername/timecamp-mcp-server.git
+```
+
+Or using `pip` (for system-wide installation):
+```bash
+pip install git+https://github.com/yourusername/timecamp-mcp-server.git
+```
+
+#### Option 2: Clone and Install Locally
+
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/yourusername/timecamp-mcp-server.git
    cd timecamp-mcp-server
    ```
 
-2. **Install dependencies**:
+2. **Install the package**:
    ```bash
-   pip install -r requirements.txt
+   pip install -e .  # Editable install for development
+   # or
+   pip install .     # Regular install
    ```
 
-3. **Get your TimeCamp API token**:
-   - Log into [TimeCamp](https://www.timecamp.com)
-   - Navigate to **Profile → API Access**
-   - Copy your API token
+### Configuration
 
-4. **Set up environment**:
-   
-   Create a `.env` file:
-   ```bash
-   TIMECAMP_API_TOKEN=your_api_token_here
-   ```
-   
-   Or export directly:
-   ```bash
-   export TIMECAMP_API_TOKEN=your_api_token_here
-   ```
+**Get your TimeCamp API token**:
+- Log into [TimeCamp](https://www.timecamp.com)
+- Navigate to **Profile → API Access**
+- Copy your API token
+
+The API token will be configured in your MCP client settings (see below).
 
 ## Client Configuration
 
@@ -57,10 +70,9 @@ Add to `~/.claude/config.json` (macOS) or `%APPDATA%\claude\config.json` (Window
 
 ```json
 {
-  "mcp_servers": {
+  "mcpServers": {
     "timecamp": {
-      "command": "python",
-      "args": ["/absolute/path/to/timecamp-mcp-server/server.py"],
+      "command": "timecamp-mcp-server",
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -77,8 +89,7 @@ Add to VS Code settings:
 {
   "cline.mcp.servers": {
     "timecamp": {
-      "command": "python",
-      "args": ["/absolute/path/to/timecamp-mcp-server/server.py"],
+      "command": "timecamp-mcp-server",
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -96,8 +107,7 @@ Add to `~/.continue/config.json`:
   "models": [...],
   "mcpServers": {
     "timecamp": {
-      "command": "python",
-      "args": ["/absolute/path/to/timecamp-mcp-server/server.py"],
+      "command": "timecamp-mcp-server",
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -497,14 +507,31 @@ pip install -r requirements.txt
 
 ## Development
 
+### Setup for Development
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/timecamp-mcp-server.git
+cd timecamp-mcp-server
+
+# Install in editable mode
+pip install -e .
+
+# Run tests
+pytest
+```
+
 ### Running locally
 ```bash
-python server.py
+# After installation
+timecamp-mcp-server
+
+# Or run as Python module
+python -m timecamp_mcp_server
 ```
 
 ### Debug mode
 ```bash
-python server.py --help
+timecamp-mcp-server --help
 ```
 
 ### Dependencies

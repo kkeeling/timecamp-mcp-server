@@ -18,7 +18,7 @@ from rapidfuzz import fuzz, process
 from pydantic import ValidationError
 
 # Import our models
-from models import (
+from .models import (
     StartTimerRequest, CreateTimeEntryRequest,
     TimerResponse, StopTimerResponse, TimerStatusResponse,
     TimeEntryResponse, DailySummaryResponse, ProjectListResponse,
@@ -883,30 +883,3 @@ async def time_tracking_insights_prompt() -> str:
     except Exception as e:
         return f"Error generating insights: {str(e)}"
 
-
-if __name__ == "__main__":
-    # Run the server
-    import sys
-    if '--help' in sys.argv:
-        print("TimeCamp MCP Server")
-        print("===================")
-        print()
-        print("Usage: python server.py")
-        print()
-        print("Environment Variables:")
-        print("  TIMECAMP_API_TOKEN - Your TimeCamp API token (required)")
-        print()
-        print("Configure in Claude Desktop by adding to config:")
-        print('{')
-        print('  "mcp_servers": {')
-        print('    "timecamp": {')
-        print('      "command": "python",')
-        print('      "args": ["/path/to/server.py"],')
-        print('      "env": {')
-        print('        "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN"')
-        print('      }')
-        print('    }')
-        print('  }')
-        print('}')
-    else:
-        mcp.run()

@@ -11,12 +11,12 @@ import json
 import sys
 
 # Import our server components
-from server import (
+from src.timecamp_mcp_server.server import (
     SimpleCache, TimeCampClient, format_duration,
     get_cached_projects, get_cached_tasks
 )
 from fastmcp.exceptions import McpError, ToolError
-from models import (
+from src.timecamp_mcp_server.models import (
     DailySummaryResponse, DailySummaryEntry, TimerStatusResponse
 )
 
@@ -219,15 +219,15 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_start_timer_success(self):
         """Test successful timer start"""
-        from server import start_timer
+        from src.timecamp_mcp_server.server import start_timer
         
         # Access the underlying function from the FunctionTool
         start_timer_fn = start_timer.fn if hasattr(start_timer, 'fn') else start_timer
         
         # Mock get_api_token
-        with patch('server.get_api_token', return_value='test_token'):
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
             # Mock TimeCampClient
-            with patch('server.TimeCampClient') as mock_client_class:
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
@@ -238,7 +238,7 @@ class TestMCPTools:
                 ]
                 
                 # Mock get_cached_tasks
-                with patch('server.get_cached_tasks', return_value=[
+                with patch('src.timecamp_mcp_server.server.get_cached_tasks', return_value=[
                     {'id': 456, 'name': 'Test Task', 'project_id': 1}
                 ]):
                     result = await start_timer_fn(456, "Working on feature")
@@ -251,13 +251,13 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_start_timer_already_running(self):
         """Test timer start when timer already running"""
-        from server import start_timer
+        from src.timecamp_mcp_server.server import start_timer
         
         # Access the underlying function from the FunctionTool
         start_timer_fn = start_timer.fn if hasattr(start_timer, 'fn') else start_timer
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.TimeCampClient') as mock_client_class:
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
@@ -276,13 +276,13 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_stop_timer_success(self):
         """Test successful timer stop"""
-        from server import stop_timer
+        from src.timecamp_mcp_server.server import stop_timer
         
         # Access the underlying function from the FunctionTool
         stop_timer_fn = stop_timer.fn if hasattr(stop_timer, 'fn') else stop_timer
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.TimeCampClient') as mock_client_class:
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
@@ -306,13 +306,13 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_stop_timer_not_running(self):
         """Test stop timer when no timer running"""
-        from server import stop_timer
+        from src.timecamp_mcp_server.server import stop_timer
         
         # Access the underlying function from the FunctionTool
         stop_timer_fn = stop_timer.fn if hasattr(stop_timer, 'fn') else stop_timer
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.TimeCampClient') as mock_client_class:
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
@@ -327,10 +327,10 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_timer_resource(self):
         """Test timer resource"""
-        from server import get_timer_resource
+        from src.timecamp_mcp_server.server import get_timer_resource
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.TimeCampClient') as mock_client_class:
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
@@ -355,22 +355,22 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_create_time_entry_success(self):
         """Test creating manual time entry"""
-        from server import create_time_entry
+        from src.timecamp_mcp_server.server import create_time_entry
         
         # Access the underlying function from the FunctionTool
         create_time_entry_fn = create_time_entry.fn if hasattr(create_time_entry, 'fn') else create_time_entry
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.TimeCampClient') as mock_client_class:
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
                 mock_client.request.return_value = {'entry_id': 999, 'id': 999}
                 
-                with patch('server.get_cached_tasks', return_value=[
+                with patch('src.timecamp_mcp_server.server.get_cached_tasks', return_value=[
                     {'id': 456, 'name': 'Test Task', 'project_id': 1}
                 ]):
-                    with patch('server.get_cached_projects', return_value=[
+                    with patch('src.timecamp_mcp_server.server.get_cached_projects', return_value=[
                         {'id': 1, 'name': 'Test Project'}
                     ]):
                         result = await create_time_entry_fn(
@@ -386,12 +386,12 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_create_time_entry_invalid_time(self):
         """Test creating time entry with invalid times"""
-        from server import create_time_entry
+        from src.timecamp_mcp_server.server import create_time_entry
         
         # Access the underlying function from the FunctionTool
         create_time_entry_fn = create_time_entry.fn if hasattr(create_time_entry, 'fn') else create_time_entry
         
-        with patch('server.get_api_token', return_value='test_token'):
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
             with pytest.raises(ToolError) as exc_info:
                 await create_time_entry_fn(
                     456, "2025-01-03", "16:00", "14:00", "Note"
@@ -402,10 +402,10 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_time_entries_resource(self):
         """Test time entries resource"""
-        from server import get_time_entries_resource
+        from src.timecamp_mcp_server.server import get_time_entries_resource
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.TimeCampClient') as mock_client_class:
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.TimeCampClient') as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client_class.return_value = mock_client
                 
@@ -416,11 +416,11 @@ class TestMCPTools:
                     '3': {'duration': 1800, 'task_id': 101, 'note': ''}
                 }
                 
-                with patch('server.get_cached_tasks', return_value=[
+                with patch('src.timecamp_mcp_server.server.get_cached_tasks', return_value=[
                     {'id': 100, 'name': 'Development', 'project_id': 1},
                     {'id': 101, 'name': 'Testing', 'project_id': 1}
                 ]):
-                    with patch('server.get_cached_projects', return_value=[
+                    with patch('src.timecamp_mcp_server.server.get_cached_projects', return_value=[
                         {'id': 1, 'name': 'Main Project'}
                     ]):
                         # Test for a specific date (not today to avoid timer check)
@@ -433,15 +433,15 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_projects_resource(self):
         """Test projects resource"""
-        from server import get_projects_resource
+        from src.timecamp_mcp_server.server import get_projects_resource
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.get_cached_projects', return_value=[
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.get_cached_projects', return_value=[
                 {'id': 1, 'name': 'Project A', 'archived': '0', 'color': '#FF0000'},
                 {'id': 2, 'name': 'Project B', 'archived': '0', 'color': '#00FF00'},
                 {'id': 3, 'name': 'Archived Project', 'archived': '1', 'color': '#0000FF'}
             ]):
-                with patch('server.get_cached_tasks', return_value=[
+                with patch('src.timecamp_mcp_server.server.get_cached_tasks', return_value=[
                     {'id': 100, 'project_id': 1},
                     {'id': 101, 'project_id': 1},
                     {'id': 102, 'project_id': 2}
@@ -466,15 +466,15 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_tasks_resource(self):
         """Test tasks resource"""
-        from server import get_tasks_resource
+        from src.timecamp_mcp_server.server import get_tasks_resource
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.get_cached_tasks', return_value=[
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.get_cached_tasks', return_value=[
                 {'id': 100, 'name': 'Task 1', 'project_id': 1, 'archived': '0'},
                 {'id': 101, 'name': 'Task 2', 'project_id': 1, 'archived': '0'},
                 {'id': 102, 'name': 'Archived Task', 'project_id': 2, 'archived': '1'}
             ]):
-                with patch('server.get_cached_projects', return_value=[
+                with patch('src.timecamp_mcp_server.server.get_cached_projects', return_value=[
                     {'id': 1, 'name': 'Project A'},
                     {'id': 2, 'name': 'Project B'}
                 ]):
@@ -494,15 +494,15 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_search_resource(self):
         """Test search resource"""
-        from server import search_resource
+        from src.timecamp_mcp_server.server import search_resource
         
-        with patch('server.get_api_token', return_value='test_token'):
-            with patch('server.get_cached_projects', return_value=[
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
+            with patch('src.timecamp_mcp_server.server.get_cached_projects', return_value=[
                 {'id': 1, 'name': 'Web Development', 'archived': '0'},
                 {'id': 2, 'name': 'Mobile App', 'archived': '0'},
                 {'id': 3, 'name': 'Archived Project', 'archived': '1'}
             ]):
-                with patch('server.get_cached_tasks', return_value=[
+                with patch('src.timecamp_mcp_server.server.get_cached_tasks', return_value=[
                     {'id': 100, 'name': 'Frontend Development', 'project_id': 1, 'archived': '0'},
                     {'id': 101, 'name': 'Backend API', 'project_id': 1, 'archived': '0'},
                     {'id': 102, 'name': 'Mobile UI', 'project_id': 2, 'archived': '0'}
@@ -533,7 +533,7 @@ class TestMCPPrompts:
     @pytest.mark.asyncio
     async def test_daily_standup_prompt(self):
         """Test daily standup prompt generation"""
-        from server import daily_standup_prompt, get_time_entries_resource
+        from src.timecamp_mcp_server.server import daily_standup_prompt, get_time_entries_resource
         
         # Mock the resource function
         mock_entries = DailySummaryResponse(
@@ -576,7 +576,7 @@ class TestMCPPrompts:
     @pytest.mark.asyncio
     async def test_weekly_report_prompt(self):
         """Test weekly report prompt generation"""
-        from server import weekly_report_prompt, get_time_entries_resource
+        from src.timecamp_mcp_server.server import weekly_report_prompt, get_time_entries_resource
         
         # Mock entries for multiple days
         def mock_get_entries(date):
@@ -626,7 +626,7 @@ class TestMCPPrompts:
                     is_timer_running=False
                 )
         
-        with patch('server.get_api_token', return_value='test_token'):
+        with patch('src.timecamp_mcp_server.server.get_api_token', return_value='test_token'):
             with patch.object(get_time_entries_resource, 'fn', side_effect=mock_get_entries):
                 result = await weekly_report_prompt.fn("2025-01-06")
             
@@ -641,7 +641,7 @@ class TestMCPPrompts:
     @pytest.mark.asyncio
     async def test_time_tracking_insights_prompt(self):
         """Test time tracking insights prompt"""
-        from server import time_tracking_insights_prompt, get_time_entries_resource, get_timer_resource
+        from src.timecamp_mcp_server.server import time_tracking_insights_prompt, get_time_entries_resource, get_timer_resource
         
         # Mock today's entries
         today_entries = DailySummaryResponse(
@@ -685,7 +685,7 @@ class TestMCPPrompts:
                 return yesterday_entries
         
         # Mock datetime.now() to return a fixed date
-        with patch('server.datetime') as mock_datetime:
+        with patch('src.timecamp_mcp_server.server.datetime') as mock_datetime:
             mock_datetime.now.return_value = datetime(2025, 1, 7, 10, 0, 0)
             mock_datetime.strptime = datetime.strptime  # Keep strptime working
             
@@ -705,7 +705,7 @@ class TestStateTracking:
     @pytest.mark.asyncio
     async def test_state_changes_resource(self):
         """Test state changes resource"""
-        from server import get_state_changes_resource, state_tracker
+        from src.timecamp_mcp_server.server import get_state_changes_resource, state_tracker
         
         # Clear any existing changes
         state_tracker.clear()
@@ -739,7 +739,7 @@ class TestStateTracking:
     
     def test_state_tracker_max_changes(self):
         """Test that state tracker limits stored changes"""
-        from server import StateTracker
+        from src.timecamp_mcp_server.server import StateTracker
         
         tracker = StateTracker()
         tracker._max_changes = 5  # Set a small limit for testing
@@ -755,7 +755,7 @@ class TestStateTracking:
     
     def test_state_tracker_filter_by_timestamp(self):
         """Test filtering changes by timestamp"""
-        from server import StateTracker
+        from src.timecamp_mcp_server.server import StateTracker
         import time
         
         tracker = StateTracker()
