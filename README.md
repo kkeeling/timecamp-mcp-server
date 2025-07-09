@@ -16,9 +16,21 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 ### Prerequisites
 
 - Python 3.8 or higher
-- [uv](https://github.com/astral-sh/uv) (recommended) or [pipx](https://github.com/pypa/pipx) for running directly from GitHub
 - TimeCamp account with API access
 - MCP-compatible client (Claude Desktop, Cline, Continue, etc.)
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/kkeeling/timecamp-mcp-server.git
+   cd timecamp-mcp-server
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -e .
+   ```
 
 ### Configuration
 
@@ -30,8 +42,6 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 
 ## Client Configuration
 
-Configure your MCP client to run the TimeCamp server directly from GitHub. The `uvx` command will automatically install and run the server on first use:
-
 ### Claude Desktop
 
 Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
@@ -40,8 +50,9 @@ Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude
 {
   "mcpServers": {
     "timecamp": {
-      "command": "uvx",
-      "args": ["timecamp-mcp-server"],
+      "command": "python",
+      "args": ["-m", "timecamp_mcp_server"],
+      "cwd": "/path/to/timecamp-mcp-server",
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -50,13 +61,12 @@ Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude
 }
 ```
 
-**Alternative using uv tool:**
+**Alternative using the CLI directly:**
 ```json
 {
   "mcpServers": {
     "timecamp": {
-      "command": "uv",
-      "args": ["tool", "run", "--from", "git+https://github.com/yourusername/timecamp-mcp-server", "timecamp-mcp-server"],
+      "command": "/path/to/timecamp-mcp-server/venv/bin/timecamp-mcp-server",
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -73,42 +83,9 @@ For VS Code extensions that support MCP, add to your settings:
 {
   "cline.mcp.servers": {
     "timecamp": {
-      "command": "uvx",
-      "args": ["timecamp-mcp-server"],
-      "env": {
-        "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
-      }
-    }
-  }
-}
-```
-
-### Manual Installation (Optional)
-
-If you prefer to install the server locally first:
-
-1. **Using pipx** (recommended for isolated environment):
-   ```bash
-   pipx install git+https://github.com/yourusername/timecamp-mcp-server.git
-   ```
-
-2. **Using uv tool**:
-   ```bash
-   uv tool install git+https://github.com/yourusername/timecamp-mcp-server.git
-   ```
-
-3. **Using pip**:
-   ```bash
-   pip install git+https://github.com/yourusername/timecamp-mcp-server.git
-   ```
-
-After installation, configure your MCP client with the simpler command:
-
-```json
-{
-  "mcpServers": {
-    "timecamp": {
-      "command": "timecamp-mcp-server",
+      "command": "python",
+      "args": ["-m", "timecamp_mcp_server"],
+      "cwd": "/path/to/timecamp-mcp-server",
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
