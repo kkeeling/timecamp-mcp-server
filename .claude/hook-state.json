@@ -2,11 +2,11 @@
   "version": "1.0",
   "sessions": {
     "91b8c82c-e582-4a9b-87c9-abbbdd49cac5": {
-      "last_processed_line": 293,
-      "last_processed_timestamp": "2025-07-08T19:41:13.022863",
+      "last_processed_line": 328,
+      "last_processed_timestamp": "2025-07-09T07:16:38.179746",
       "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/91b8c82c-e582-4a9b-87c9-abbbdd49cac5.jsonl",
-      "file_size": 906468,
-      "file_mtime": 1752018072.9492538
+      "file_size": 1021460,
+      "file_mtime": 1752059798.0933456
     }
   }
 }

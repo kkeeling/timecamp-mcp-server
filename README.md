@@ -24,7 +24,8 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 
 **Get your TimeCamp API token**:
 - Log into [TimeCamp](https://www.timecamp.com)
-- Navigate to **Profile → API Access**
+- Navigate to **Profile**
+- Scroll down to **Your programming API token**
 - Copy your API token
 
 ## Client Configuration
