@@ -23,11 +23,11 @@
       "file_mtime": 1752244204.3963687
     },
     "a856e563-9111-4510-94f5-0d16ccc40e91": {
-      "last_processed_line": 200,
-      "last_processed_timestamp": "2025-07-11T11:49:53.391360",
+      "last_processed_line": 223,
+      "last_processed_timestamp": "2025-07-11T11:53:52.600291",
       "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/a856e563-9111-4510-94f5-0d16ccc40e91.jsonl",
-      "file_size": 910741,
-      "file_mtime": 1752248992.89033
+      "file_size": 930773,
+      "file_mtime": 1752249232.4677398
     }
   }
 }
