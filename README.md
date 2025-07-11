@@ -15,21 +15,17 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- [uv](https://github.com/astral-sh/uv) - Fast Python package manager (recommended)
+- OR Python 3.8 or higher
 - TimeCamp account with API access
 - MCP-compatible client (Claude Desktop, Cline, Continue, etc.)
 
 ### Installation
 
-1. **Clone the repository**:
+1. Clone the repository:
    ```bash
    git clone https://github.com/kkeeling/timecamp-mcp-server.git
    cd timecamp-mcp-server
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -e .
    ```
 
 ### Configuration
@@ -50,23 +46,14 @@ Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude
 {
   "mcpServers": {
     "timecamp": {
-      "command": "python",
-      "args": ["-m", "timecamp_mcp_server"],
-      "cwd": "/path/to/timecamp-mcp-server",
-      "env": {
-        "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
-      }
-    }
-  }
-}
-```
-
-**Alternative using the CLI directly:**
-```json
-{
-  "mcpServers": {
-    "timecamp": {
-      "command": "/path/to/timecamp-mcp-server/venv/bin/timecamp-mcp-server",
+      "command": "/path/to/uv",
+      "args": [
+        "--directory",
+        "/path/to/timecamp-mcp-server",
+        "run",
+        "python",
+        "timecamp-server.py"
+      ],
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -83,9 +70,14 @@ For VS Code extensions that support MCP, add to your settings:
 {
   "cline.mcp.servers": {
     "timecamp": {
-      "command": "python",
-      "args": ["-m", "timecamp_mcp_server"],
-      "cwd": "/path/to/timecamp-mcp-server",
+      "command": "/path/to/uv",
+      "args": [
+        "--directory",
+        "/path/to/timecamp-mcp-server",
+        "run",
+        "python",
+        "timecamp-server.py"
+      ],
       "env": {
         "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
       }
@@ -472,12 +464,6 @@ Ensure the API token is properly configured in your MCP client's configuration f
 ### "Rate limit exceeded"
 TimeCamp API has rate limits. Wait 60 seconds before retrying.
 
-### "Module not found"
-Install all dependencies:
-```bash
-pip install -r requirements.txt
-```
-
 ### Timer not starting
 1. Verify the task ID exists
 2. Check if a timer is already running (stop it first)
@@ -485,31 +471,12 @@ pip install -r requirements.txt
 
 ## Development
 
-### Setup for Development
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/timecamp-mcp-server.git
-cd timecamp-mcp-server
-
-# Install in editable mode
-pip install -e .
-
-# Run tests
-pytest
-```
+The server is implemented as a single file Python script (`timecamp-server.py`) that uses PEP 723 inline script metadata. Dependencies are automatically handled by UV.
 
 ### Running locally
 ```bash
-# After installation
-timecamp-mcp-server
-
-# Or run as Python module
-python -m timecamp_mcp_server
-```
-
-### Debug mode
-```bash
-timecamp-mcp-server --help
+# Using UV
+uv run timecamp-server.py
 ```
 
 ### Dependencies
@@ -531,4 +498,3 @@ MIT License - see LICENSE file for details
 
 - **TimeCamp API Documentation**: [https://developer.timecamp.com/](https://developer.timecamp.com/)
 - **MCP Documentation**: [https://modelcontextprotocol.io/](https://modelcontextprotocol.io/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/timecamp-mcp-server/issues)

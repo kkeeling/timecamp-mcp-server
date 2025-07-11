@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#     "fastmcp>=0.8.0",
+#     "httpx>=0.27.0",
+#     "pydantic>=2.0.0",
+#     "python-dotenv>=1.0.0",
+#     "rapidfuzz>=3.0.0",
+# ]
+# ///
 """
-TimeCamp MCP Server
+TimeCamp MCP Server - Single File Version
 A Model Context Protocol server for TimeCamp time tracking integration.
+Run with: uv run timecamp-server.py
 """
 
 import os
 import json
 import logging
 import hashlib
+import sys
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Any, Tuple
 
@@ -15,15 +28,186 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 import httpx
 from rapidfuzz import fuzz, process
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, field_validator, ValidationError
 
-# Import our models
-from .models import (
-    StartTimerRequest, CreateTimeEntryRequest,
-    TimerResponse, StopTimerResponse, TimerStatusResponse,
-    TimeEntryResponse, DailySummaryResponse, ProjectListResponse,
-    DailySummaryEntry, ProjectInfo, SearchResponse, SearchResultItem
-)
+# ========== PYDANTIC MODELS ==========
+
+# Request Models
+class StartTimerRequest(BaseModel):
+    """Request model for starting a timer"""
+    task_id: int = Field(..., gt=0, description="Task ID to start timer for")
+    note: Optional[str] = Field(default="", max_length=1000, description="Optional note for the timer")
+
+
+class CreateTimeEntryRequest(BaseModel):
+    """Request model for creating a manual time entry"""
+    task_id: int = Field(..., gt=0, description="Task ID for the time entry")
+    date: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$', description="Date in YYYY-MM-DD format")
+    start_time: str = Field(..., pattern=r'^\d{2}:\d{2}$', description="Start time in HH:MM format")
+    end_time: str = Field(..., pattern=r'^\d{2}:\d{2}$', description="End time in HH:MM format")
+    note: Optional[str] = Field(default="", max_length=1000, description="Optional note for the entry")
+    
+    @field_validator('end_time')
+    @classmethod
+    def validate_end_after_start(cls, v, info):
+        """Ensure end time is after start time"""
+        if 'start_time' in info.data and v <= info.data['start_time']:
+            raise ValueError('End time must be after start time')
+        return v
+
+
+class SearchRequest(BaseModel):
+    """Request model for searching projects and tasks"""
+    query: str = Field(..., min_length=1, max_length=200, description="Search query")
+
+
+# Response Models
+class TimerResponse(BaseModel):
+    """Response model for timer operations"""
+    message: str
+    timer_id: int
+    task_id: int
+    task_name: str
+    started_at: Optional[str] = None
+    project_name: Optional[str] = None
+
+
+class StopTimerResponse(BaseModel):
+    """Response model for stopping timer"""
+    message: str
+    duration: str
+    duration_seconds: int
+    task_name: str
+    task_id: Optional[int] = None
+    timer_id: Optional[int] = None
+
+
+class TimerStatusResponse(BaseModel):
+    """Response model for timer status"""
+    is_running: bool
+    message: Optional[str] = None
+    task_name: Optional[str] = None
+    task_id: Optional[int] = None
+    timer_id: Optional[int] = None
+    project_name: Optional[str] = None
+    elapsed_time: Optional[str] = None
+    elapsed_seconds: Optional[int] = None
+    start_time: Optional[str] = None
+
+
+class SearchResultItem(BaseModel):
+    """Individual search result"""
+    type: str = Field(..., pattern='^(project|task)$')
+    id: int
+    name: str
+    match_score: float = Field(..., ge=0.0, le=1.0)
+    project_name: Optional[str] = None
+
+
+class SearchResponse(BaseModel):
+    """Response model for search results"""
+    results: List[SearchResultItem]
+    total_results: int
+    query: str
+
+
+class TimeEntryResponse(BaseModel):
+    """Response model for time entry creation"""
+    entry_id: int
+    task_id: int
+    task_name: str
+    project_name: str
+    date: str
+    start_time: str
+    end_time: str
+    duration: str
+    duration_seconds: int
+    note: str
+
+
+class DailySummaryEntry(BaseModel):
+    """Individual entry in daily summary"""
+    task_name: str
+    task_id: int
+    project_name: str
+    duration: str
+    duration_seconds: int
+    notes: List[str] = Field(default_factory=list)
+
+
+class DailySummaryResponse(BaseModel):
+    """Response model for daily summary"""
+    date: str
+    total_time: str
+    total_seconds: int
+    entries: List[DailySummaryEntry]
+    entry_count: int
+    is_timer_running: bool
+    current_task: Optional[str] = None
+    current_task_id: Optional[int] = None
+
+
+class ProjectInfo(BaseModel):
+    """Individual project information"""
+    id: int
+    name: str
+    color: str = Field(default="#4CAF50")
+    tasks_count: int = Field(ge=0)
+    archived: bool = Field(default=False)
+
+
+class ProjectListResponse(BaseModel):
+    """Response model for project list"""
+    projects: List[ProjectInfo]
+    total_count: int
+    include_archived: bool
+
+
+# TimeCamp API Models
+class TimeCampProject(BaseModel):
+    """TimeCamp project data model"""
+    task_id: int  # TimeCamp uses 'task_id' not 'id'
+    name: str
+    color: Optional[str] = None
+    archived: Optional[str] = None
+    
+    @property
+    def is_archived(self) -> bool:
+        return self.archived == '1'
+
+
+class TimeCampTask(BaseModel):
+    """TimeCamp task data model"""
+    task_id: int  # TimeCamp uses 'task_id' not 'id'
+    name: str
+    project_id: Optional[int] = None
+    archived: Optional[str] = None
+    
+    @property
+    def is_archived(self) -> bool:
+        return self.archived == '1'
+
+
+class TimeCampTimeEntry(BaseModel):
+    """TimeCamp time entry data model"""
+    id: Optional[int] = None
+    task_id: int
+    date: str
+    start_time: str
+    end_time: str
+    duration: int
+    note: Optional[str] = None
+
+
+class TimeCampTimer(BaseModel):
+    """TimeCamp timer data model"""
+    timer_id: Optional[int] = None
+    task_id: Optional[int] = None
+    name: Optional[str] = None
+    project_name: Optional[str] = None
+    started_at: Optional[str] = None
+
+# ========== SERVER IMPLEMENTATION ==========
 
 # Initialize FastMCP server
 mcp = FastMCP("TimeCamp MCP Server")
@@ -86,14 +270,68 @@ class TimeCampClient:
     
     def __init__(self, api_token: str):
         self.api_token = api_token
-        self.base_url = "https://www.timecamp.com/third_party/api"
-        self.headers = {"Authorization": api_token}
+        self.base_url = "https://app.timecamp.com/third_party/api"
+        self.headers = {"Authorization": f"Bearer {api_token}"}
+    
+    def _xml_to_dict(self, element):
+        """Convert XML element to dictionary"""
+        result = {}
+        
+        # Handle empty XML response
+        if len(element) == 0 and element.text is None:
+            return result
+            
+        # If element has children, process them
+        if len(element) > 0:
+            # Check if all children have the same tag (list of items)
+            child_tags = [child.tag for child in element]
+            if len(set(child_tags)) == 1 and child_tags[0] == 'item':
+                # This is a list of items
+                items = []
+                for child in element:
+                    item_dict = {}
+                    for subchild in child:
+                        value = subchild.text
+                        # Try to convert to appropriate type
+                        if value is not None:
+                            if value.isdigit():
+                                value = int(value)
+                            elif value.replace('.', '', 1).isdigit():
+                                value = float(value)
+                        item_dict[subchild.tag] = value
+                    items.append(item_dict)
+                return items
+            else:
+                # This is a single object with various fields
+                for child in element:
+                    if len(child) > 0:
+                        result[child.tag] = self._xml_to_dict(child)
+                    else:
+                        value = child.text
+                        # Try to convert to appropriate type
+                        if value is not None:
+                            if value.isdigit():
+                                value = int(value)
+                            elif value.replace('.', '', 1).isdigit():
+                                value = float(value)
+                        result[child.tag] = value
+        else:
+            # Element has no children, just return its text
+            value = element.text
+            if value is not None:
+                if value.isdigit():
+                    value = int(value)
+                elif value.replace('.', '', 1).isdigit():
+                    value = float(value)
+            return value
+            
+        return result
     
     async def request(self, method: str, endpoint: str, data: dict = None) -> dict:
         """Make API request with error handling"""
         url = f"{self.base_url}/{endpoint}"
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=False) as client:
             try:
                 response = await client.request(
                     method=method,
@@ -103,10 +341,24 @@ class TimeCampClient:
                     timeout=10.0
                 )
                 response.raise_for_status()
-                return response.json() if response.text else {}
+                
+                # TimeCamp API returns XML, not JSON
+                # Parse XML response and convert to dict
+                if response.text:
+                    try:
+                        # Check if response is JSON (some endpoints might return JSON)
+                        return response.json()
+                    except:
+                        # Parse XML response
+                        root = ET.fromstring(response.text)
+                        return self._xml_to_dict(root)
+                else:
+                    return {}
                 
             except httpx.HTTPStatusError as e:
-                if e.response.status_code == 401:
+                if e.response.status_code == 302:
+                    raise ToolError("Invalid or missing API token. TimeCamp is redirecting to login. Please check your TIMECAMP_API_TOKEN in the MCP configuration.") from e
+                elif e.response.status_code == 401:
                     raise ToolError("Invalid API token. Check TimeCamp settings") from e
                 elif e.response.status_code == 404:
                     raise ToolError("Resource not found") from e
@@ -126,24 +378,22 @@ def get_api_token() -> str:
     token = os.getenv('TIMECAMP_API_TOKEN')
     if not token:
         raise ToolError("TIMECAMP_API_TOKEN environment variable not set")
+    
     return token
 
 async def get_cached_projects(client: TimeCampClient) -> List[Dict]:
-    """Get projects with caching"""
-    cached_value, _, _ = cache.get('projects')
-    if cached_value is not None:
-        return cached_value
+    """Get projects from tasks endpoint with caching"""
+    # Projects are top-level tasks (parent_id = 0)
+    tasks = await get_cached_tasks(client)
     
-    projects = await client.request('GET', 'projects')
-    # Convert dict response to list
-    project_list = []
-    for project_id, project_data in projects.items():
-        if isinstance(project_data, dict):
-            project_data['id'] = int(project_id)
-            project_list.append(project_data)
+    # Filter for projects only (top-level items with parent_id = 0)
+    projects = []
+    for task in tasks:
+        # In TimeCamp, projects have parent_id = 0
+        if task.get('parent_id') == 0:
+            projects.append(task)
     
-    cache.set('projects', project_list)
-    return project_list
+    return projects
 
 async def get_cached_tasks(client: TimeCampClient) -> List[Dict]:
     """Get tasks with caching"""
@@ -152,12 +402,13 @@ async def get_cached_tasks(client: TimeCampClient) -> List[Dict]:
         return cached_value
     
     tasks = await client.request('GET', 'tasks')
-    # Convert dict response to list
-    task_list = []
-    for task_id, task_data in tasks.items():
-        if isinstance(task_data, dict):
-            task_data['id'] = int(task_id)
-            task_list.append(task_data)
+    
+    # The XML response is already converted to a list by _xml_to_dict
+    if isinstance(tasks, list):
+        task_list = tasks
+    else:
+        # Fallback for unexpected format
+        task_list = []
     
     cache.set('tasks', task_list)
     return task_list
@@ -170,6 +421,43 @@ def format_duration(seconds: int) -> str:
         return f"{hours}h {minutes}m"
     else:
         return f"{minutes}m"
+
+# Resource Change Tracking
+# Since FastMCP doesn't support real-time subscriptions, we'll track
+# significant state changes that clients can poll via resources
+
+class StateTracker:
+    """Track significant state changes for client polling"""
+    def __init__(self):
+        self._changes: List[Dict[str, Any]] = []
+        self._max_changes = 100
+    
+    def record_change(self, change_type: str, details: Dict[str, Any]):
+        """Record a state change"""
+        change = {
+            "type": change_type,
+            "timestamp": datetime.now().isoformat(),
+            "details": details
+        }
+        self._changes.append(change)
+        # Keep only recent changes
+        if len(self._changes) > self._max_changes:
+            self._changes = self._changes[-self._max_changes:]
+    
+    def get_changes_since(self, timestamp: Optional[datetime] = None) -> List[Dict[str, Any]]:
+        """Get changes since a timestamp"""
+        if not timestamp:
+            return self._changes
+        
+        return [c for c in self._changes 
+                if datetime.fromisoformat(c["timestamp"]) > timestamp]
+    
+    def clear(self):
+        """Clear all changes"""
+        self._changes.clear()
+
+# Global state tracker
+state_tracker = StateTracker()
 
 # MCP Resources Implementation - Read-only operations
 
@@ -187,10 +475,14 @@ async def get_projects_resource() -> ProjectListResponse:
     for project in projects:
         if 'name' in project:
             # Count tasks for this project
-            task_count = sum(1 for t in tasks if t.get('project_id') == project['id'])
+            project_id = project.get('task_id')  # TimeCamp uses 'task_id' not 'id'
+            if project_id is None:
+                continue  # Skip if no task_id
+                
+            task_count = sum(1 for t in tasks if t.get('project_id') == project_id)
             
             project_list.append(ProjectInfo(
-                id=project['id'],
+                id=project_id,
                 name=project['name'],
                 color=project.get('color', '#4CAF50'),
                 tasks_count=task_count,
@@ -219,9 +511,13 @@ async def get_tasks_resource() -> List[Dict[str, Any]]:
     enriched_tasks = []
     for task in tasks:
         if 'name' in task:
-            project = next((p for p in projects if p['id'] == task.get('project_id')), None)
+            task_id = task.get('task_id')  # TimeCamp uses 'task_id' not 'id'
+            if task_id is None:
+                continue  # Skip if no task_id
+                
+            project = next((p for p in projects if p.get('task_id') == task.get('project_id')), None)
             enriched_task = {
-                'id': task['id'],
+                'id': task_id,
                 'name': task['name'],
                 'project_id': task.get('project_id'),
                 'project_name': project['name'] if project else 'No Project',
@@ -244,7 +540,8 @@ async def get_timer_resource() -> TimerStatusResponse:
     
     result = await client.request('GET', 'timer_running')
     
-    if result and 'timer_id' in result:
+    # Handle both empty dict {} and dict with timer data
+    if result and result.get('timer_id'):
         # Calculate elapsed time
         if 'started_at' in result:
             started = datetime.fromisoformat(result['started_at'].replace('Z', '+00:00'))
@@ -293,7 +590,7 @@ async def get_time_entries_resource(date: str) -> DailySummaryResponse:
         raise ToolError("Invalid date format. Use YYYY-MM-DD") from e
     
     # Get entries for the date
-    entries = await client.request('GET', f'time_entries?from={date}&to={date}')
+    entries = await client.request('GET', f'entries?from={date}&to={date}')
     
     # Get current timer status if date is today
     timer_status = None
@@ -308,18 +605,24 @@ async def get_time_entries_resource(date: str) -> DailySummaryResponse:
     tasks = await get_cached_tasks(client)
     projects = await get_cached_projects(client)
     
-    for entry_id, entry_data in entries.items():
+    # Handle XML response format - entries is now a list
+    if isinstance(entries, list):
+        entries_list = entries
+    else:
+        entries_list = []
+    
+    for entry_data in entries_list:
         if isinstance(entry_data, dict) and 'duration' in entry_data:
             duration = int(entry_data['duration'])
             total_seconds += duration
             
             # Get task and project names
             task_id = entry_data.get('task_id')
-            task = next((t for t in tasks if t['id'] == task_id), None)
+            task = next((t for t in tasks if t.get('task_id') == task_id), None)
             task_name = task['name'] if task else 'Unknown'
             
             project_id = task.get('project_id') if task else None
-            project = next((p for p in projects if p['id'] == project_id), None)
+            project = next((p for p in projects if p.get('task_id') == project_id), None)
             project_name = project['name'] if project else 'No Project'
             
             # Group by task_id
@@ -384,23 +687,29 @@ async def search_resource(q: str) -> SearchResponse:
     # Add projects
     for project in projects:
         if 'name' in project and project.get('archived', '0') != '1':
-            choices.append({
-                'type': 'project',
-                'id': project['id'],
-                'name': project['name'],
-                'search_text': project['name']
-            })
+            project_id = project.get('task_id')  # TimeCamp uses 'task_id' not 'id'
+            if project_id is not None:
+                choices.append({
+                    'type': 'project',
+                    'id': project_id,
+                    'name': project['name'],
+                    'search_text': project['name']
+                })
     
     # Add tasks
     for task in tasks:
         if 'name' in task and task.get('archived', '0') != '1':
+            task_id = task.get('task_id')  # TimeCamp uses 'task_id' not 'id'
+            if task_id is None:
+                continue  # Skip if no task_id
+                
             project_name = next(
-                (p['name'] for p in projects if p['id'] == task.get('project_id')),
+                (p['name'] for p in projects if p.get('task_id') == task.get('project_id')),
                 'No Project'
             )
             choices.append({
                 'type': 'task',
-                'id': task['id'],
+                'id': task_id,
                 'name': task['name'],
                 'project_name': project_name,
                 'search_text': f"{task['name']} {project_name}"
@@ -432,6 +741,18 @@ async def search_resource(q: str) -> SearchResponse:
     
     return SearchResponse(results=results, total_results=len(results), query=q)
 
+@mcp.resource("timecamp://changes")
+async def get_state_changes_resource() -> Dict[str, Any]:
+    """Get recent state changes (pseudo-subscription).
+    
+    This resource allows clients to poll for recent state changes
+    like timer starts/stops and time entry creation.
+    """
+    return {
+        "changes": state_tracker.get_changes_since(),
+        "timestamp": datetime.now().isoformat()
+    }
+
 # MCP Tools Implementation - State-changing operations only
 
 @mcp.tool()
@@ -449,7 +770,7 @@ async def start_timer(task_id: int, note: Optional[str] = "") -> TimerResponse:
     # Check if timer already running
     try:
         current = await client.request('GET', 'timer_running')
-        if current and 'timer_id' in current:
+        if current and current.get('timer_id'):
             task_name = current.get('name', 'Unknown task')
             raise ToolError(
                 f"Timer already running for task '{task_name}' (ID: {current.get('timer_id')})"
@@ -470,7 +791,7 @@ async def start_timer(task_id: int, note: Optional[str] = "") -> TimerResponse:
     
     # Get task name for response
     tasks = await get_cached_tasks(client)
-    task_name = next((t['name'] for t in tasks if t['id'] == request.task_id), 'Unknown')
+    task_name = next((t['name'] for t in tasks if t.get('task_id') == request.task_id), 'Unknown')
     
     # Invalidate timer and today's time entries caches
     cache.invalidate('timer')
@@ -500,7 +821,7 @@ async def stop_timer() -> StopTimerResponse:
     
     # Check if timer is running
     current = await client.request('GET', 'timer_running')
-    if not current or 'timer_id' not in current:
+    if not current or not current.get('timer_id'):
         raise ToolError("No timer is currently running")
     
     # Stop timer
@@ -587,16 +908,16 @@ async def create_time_entry(
     if request.note:
         data["note"] = request.note
     
-    result = await client.request('POST', 'time_entries', data)
+    result = await client.request('POST', 'entries', data)
     
     # Get task name for response
     tasks = await get_cached_tasks(client)
-    task = next((t for t in tasks if t['id'] == request.task_id), None)
+    task = next((t for t in tasks if t.get('task_id') == request.task_id), None)
     task_name = task['name'] if task else 'Unknown'
     
     # Get project name
     projects = await get_cached_projects(client)
-    project = next((p for p in projects if p['id'] == task.get('project_id')), None) if task else None
+    project = next((p for p in projects if p.get('task_id') == task.get('project_id')), None) if task else None
     project_name = project['name'] if project else 'No Project'
     
     # Invalidate time entries cache for the date
@@ -626,53 +947,59 @@ async def create_time_entry(
         note=request.note
     )
 
-# Resource Change Tracking
-# Since FastMCP doesn't support real-time subscriptions, we'll track
-# significant state changes that clients can poll via resources
+# Tool Wrappers for Resources (for client compatibility)
 
-class StateTracker:
-    """Track significant state changes for client polling"""
-    def __init__(self):
-        self._changes: List[Dict[str, Any]] = []
-        self._max_changes = 100
+@mcp.tool()
+async def get_projects() -> Dict[str, Any]:
+    """Get all TimeCamp projects.
     
-    def record_change(self, change_type: str, details: Dict[str, Any]):
-        """Record a state change"""
-        change = {
-            "type": change_type,
-            "timestamp": datetime.now().isoformat(),
-            "details": details
-        }
-        self._changes.append(change)
-        # Keep only recent changes
-        if len(self._changes) > self._max_changes:
-            self._changes = self._changes[-self._max_changes:]
-    
-    def get_changes_since(self, timestamp: Optional[datetime] = None) -> List[Dict[str, Any]]:
-        """Get changes since a timestamp"""
-        if not timestamp:
-            return self._changes
-        
-        return [c for c in self._changes 
-                if datetime.fromisoformat(c["timestamp"]) > timestamp]
-    
-    def clear(self):
-        """Clear all changes"""
-        self._changes.clear()
-
-# Global state tracker
-state_tracker = StateTracker()
-
-@mcp.resource("timecamp://changes")
-async def get_state_changes_resource() -> Dict[str, Any]:
-    """Get recent state changes (pseudo-subscription).
-    
-    This resource allows clients to poll for recent state changes
-    like timer starts/stops and time entry creation.
+    Returns a list of all projects with their details including name, color, 
+    task count, and archived status.
     """
+    return await get_projects_resource.fn()
+
+@mcp.tool()
+async def get_timer_status() -> Dict[str, Any]:
+    """Get current timer status.
+    
+    Returns information about the currently running timer including task name,
+    elapsed time, and start time. If no timer is running, indicates that status.
+    """
+    return await get_timer_resource.fn()
+
+@mcp.tool()
+async def get_tasks() -> List[Dict[str, Any]]:
+    """Get all TimeCamp tasks.
+    
+    Returns a list of all tasks with their associated projects, IDs, and names.
+    """
+    return await get_tasks_resource.fn()
+
+@mcp.tool()
+async def get_timecamp_overview() -> Dict[str, Any]:
+    """Get complete TimeCamp overview including timer, projects, and tasks.
+    
+    Provides a comprehensive snapshot of your TimeCamp workspace including:
+    - Current timer status
+    - All projects with details
+    - All tasks with their projects
+    - Summary statistics
+    """
+    timer = await get_timer_resource.fn()
+    projects = await get_projects_resource.fn()
+    tasks = await get_tasks_resource.fn()
+    
     return {
-        "changes": state_tracker.get_changes_since(),
-        "timestamp": datetime.now().isoformat()
+        "timer": timer,
+        "projects": projects.get("projects", []),
+        "tasks": tasks,
+        "summary": {
+            "timer_running": timer.get("is_running", False),
+            "current_task": timer.get("task_name") if timer.get("is_running") else None,
+            "total_projects": len(projects.get("projects", [])),
+            "active_projects": len([p for p in projects.get("projects", []) if not p.get("archived", False)]),
+            "total_tasks": len(tasks)
+        }
     }
 
 # MCP Prompts Implementation
@@ -883,3 +1210,6 @@ async def time_tracking_insights_prompt() -> str:
     except Exception as e:
         return f"Error generating insights: {str(e)}"
 
+# Main entry point
+if __name__ == "__main__":
+    mcp.run()

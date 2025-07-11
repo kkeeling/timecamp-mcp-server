@@ -2,11 +2,32 @@
   "version": "1.0",
   "sessions": {
     "91b8c82c-e582-4a9b-87c9-abbbdd49cac5": {
-      "last_processed_line": 328,
-      "last_processed_timestamp": "2025-07-09T07:16:38.179746",
+      "last_processed_line": 418,
+      "last_processed_timestamp": "2025-07-09T19:21:45.227449",
       "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/91b8c82c-e582-4a9b-87c9-abbbdd49cac5.jsonl",
-      "file_size": 1021460,
-      "file_mtime": 1752059798.0933456
+      "file_size": 1567570,
+      "file_mtime": 1752103305.1463249
+    },
+    "be81913a-50ef-414d-b712-699a1544be58": {
+      "last_processed_line": 297,
+      "last_processed_timestamp": "2025-07-10T21:40:02.997203",
+      "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/be81913a-50ef-414d-b712-699a1544be58.jsonl",
+      "file_size": 744166,
+      "file_mtime": 1752198002.4585924
+    },
+    "18b706aa-fd42-4d26-9b80-14c03d101d8b": {
+      "last_processed_line": 261,
+      "last_processed_timestamp": "2025-07-11T10:30:04.507587",
+      "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/18b706aa-fd42-4d26-9b80-14c03d101d8b.jsonl",
+      "file_size": 2176297,
+      "file_mtime": 1752244204.3963687
+    },
+    "a856e563-9111-4510-94f5-0d16ccc40e91": {
+      "last_processed_line": 200,
+      "last_processed_timestamp": "2025-07-11T11:49:53.391360",
+      "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/a856e563-9111-4510-94f5-0d16ccc40e91.jsonl",
+      "file_size": 910741,
+      "file_mtime": 1752248992.89033
     }
   }
 }
