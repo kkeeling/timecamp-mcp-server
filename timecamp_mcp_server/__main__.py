@@ -22,7 +22,21 @@ def main() -> None:
     spec.loader.exec_module(timecamp_module)
     
     # Run the MCP server
-    timecamp_module.mcp.run()  # type: ignore[attr-defined]
+    if not hasattr(timecamp_module, 'mcp'):
+        raise AttributeError(
+            "The timecamp-server module does not have an 'mcp' attribute. "
+            "Please ensure timecamp-server.py properly initializes the FastMCP server."
+        )
+    
+    mcp = getattr(timecamp_module, 'mcp')
+    if not hasattr(mcp, 'run'):
+        raise AttributeError(
+            "The mcp object does not have a 'run' method. "
+            "Please ensure the FastMCP server is properly configured."
+        )
+    
+    # Call the run method
+    mcp.run()
 
 
 if __name__ == "__main__":
