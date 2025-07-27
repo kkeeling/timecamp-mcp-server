@@ -56,3 +56,6 @@ dmypy.json
 
 # Test directories
 test_install/
+
+# Claude development files
+.claude/hook-state.json
