@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"},
+    {name = "Keenan Keeling", email = "kkeeling@gmail.com"},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -35,9 +35,9 @@ dependencies = [
 timecamp-mcp-server = "timecamp_mcp_server.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/timecamp-mcp-server"
-Repository = "https://github.com/yourusername/timecamp-mcp-server.git"
-Issues = "https://github.com/yourusername/timecamp-mcp-server/issues"
+Homepage = "https://github.com/kkeeling/timecamp-mcp-server"
+Repository = "https://github.com/kkeeling/timecamp-mcp-server.git"
+Issues = "https://github.com/kkeeling/timecamp-mcp-server/issues"
 
 [tool.setuptools]
 packages = ["timecamp_mcp_server"]
