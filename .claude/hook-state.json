@@ -35,6 +35,13 @@
       "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/f38fc8ab-0a90-4647-b90d-7b44be590cc4.jsonl",
       "file_size": 181940,
       "file_mtime": 1753579547.1419597
+    },
+    "73d97532-3b1f-4cef-8a8f-1f7f87fee690": {
+      "last_processed_line": 663,
+      "last_processed_timestamp": "2025-07-27T09:24:01.688970",
+      "transcript_path": "/Users/codeshack-x/.claude/projects/-Users-codeshack-x-Documents--projects-timecamp-mcp-server/73d97532-3b1f-4cef-8a8f-1f7f87fee690.jsonl",
+      "file_size": 1777595,
+      "file_mtime": 1753622641.643741
     }
   }
 }
