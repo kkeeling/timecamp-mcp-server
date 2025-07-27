@@ -22,11 +22,25 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/kkeeling/timecamp-mcp-server.git
-   cd timecamp-mcp-server
-   ```
+#### Option 1: Install from PyPI (Recommended)
+
+Using pip:
+```bash
+pip install timecamp-mcp-server
+```
+
+Using uvx (for one-time runs):
+```bash
+uvx timecamp-mcp-server
+```
+
+#### Option 2: Manual Installation
+
+Clone the repository:
+```bash
+git clone https://github.com/kkeeling/timecamp-mcp-server.git
+cd timecamp-mcp-server
+```
 
 ### Configuration
 
@@ -42,6 +56,22 @@ A Model Context Protocol (MCP) server that integrates TimeCamp time tracking dir
 
 Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
+#### If installed via pip:
+```json
+{
+  "mcpServers": {
+    "timecamp": {
+      "command": "uvx",
+      "args": ["timecamp-mcp-server"],
+      "env": {
+        "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
+      }
+    }
+  }
+}
+```
+
+#### If using manual installation:
 ```json
 {
   "mcpServers": {
@@ -66,6 +96,22 @@ Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude
 
 For VS Code extensions that support MCP, add to your settings:
 
+#### If installed via pip:
+```json
+{
+  "cline.mcp.servers": {
+    "timecamp": {
+      "command": "uvx",
+      "args": ["timecamp-mcp-server"],
+      "env": {
+        "TIMECAMP_API_TOKEN": "YOUR_API_TOKEN_HERE"
+      }
+    }
+  }
+}
+```
+
+#### If using manual installation:
 ```json
 {
   "cline.mcp.servers": {

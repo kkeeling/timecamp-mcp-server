@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "timecamp-mcp-server"
+version = "0.1.0"
+description = "A Model Context Protocol server for TimeCamp time tracking integration"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Keenan Keeling", email = "kkeeling@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastmcp>=0.8.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "rapidfuzz>=3.0.0",
+]
+
+[project.scripts]
+timecamp-mcp-server = "timecamp_mcp_server.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/kkeeling/timecamp-mcp-server"
+Repository = "https://github.com/kkeeling/timecamp-mcp-server.git"
+Issues = "https://github.com/kkeeling/timecamp-mcp-server/issues"
+
+[tool.setuptools]
+packages = ["timecamp_mcp_server"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+timecamp_mcp_server = ["../timecamp-server.py"]
