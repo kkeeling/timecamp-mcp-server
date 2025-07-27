@@ -53,3 +53,6 @@ dmypy.json
 
 # Logs
 *.log
+
+# Test directories
+test_install/
